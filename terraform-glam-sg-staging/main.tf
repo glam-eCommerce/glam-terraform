@@ -3,17 +3,17 @@ provider "aws" {
   region = "ap-southeast-1"
 }
 
-# Define the Elastic Beanstalk application and environment for the frontend
-resource "aws_elastic_beanstalk_application" "frontend_app" {
-  name = "glam-docker-client-eb"
+# Define the Elastic Beanstalk application and environment for the client
+resource "aws_elastic_beanstalk_application" "client_app" {
+  name = "Glamdockerclienteb-env-staging"
 }
 
-resource "aws_elastic_beanstalk_environment" "frontend_staging_env" {
+resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   name                = "Glamdockerclienteb-env-staging"
-  application         = aws_elastic_beanstalk_application.frontend_app.name
+  application         = aws_elastic_beanstalk_application.client_app.name
   solution_stack_name = "64bit Amazon Linux 2 v5.4.6 running Docker 20.10.7"
   
-  # Configure the Elastic Beanstalk environment with the necessary properties for the frontend code
+  # Configure the Elastic Beanstalk environment with the necessary properties for the client code
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "Command"
@@ -48,62 +48,62 @@ resource "aws_elastic_beanstalk_environment" "frontend_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineServiceRoleArn"
-    value     = var.frontend_codepipeline_role_arn
+    value     = var.client_codepipeline_role_arn
   }
   
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineS3Bucket"
-    value     = var.frontend_codepipeline_s3_bucket_name
+    value     = var.client_codepipeline_s3_bucket_name
   }
   
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineS3Key"
-    value     = var.frontend_codepipeline_s3_key
+    value     = var.client_codepipeline_s3_key
   }
 }
 
-# Define the Elastic Beanstalk application and environment for the backend
-resource "aws_elastic_beanstalk_application" "backend_app" {
+# Define the Elastic Beanstalk application and environment for the server
+resource "aws_elastic_beanstalk_application" "server_app" {
   name = "glam-shop-server"
 }
 
-resource "aws_elastic_beanstalk_environment" "backend_staging_env" {
+resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   name                = "glam-shop-server-staging"
-  application         = aws_elastic_beanstalk_application.backend_app.name
+  application         = aws_elastic_beanstalk_application.server_app.name
   solution_stack_name = "64bit Amazon Linux 2 v5.4.6 running Docker 20.10.7"
   
-  # Configure the Elastic Beanstalk environment with the necessary properties for the backend code
+  # Configure the Elastic Beanstalk environment with the necessary properties for the server code
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE_URL"
-    value     = var.backend_db_url
+    value     = var.server_db_url
   }
   
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE_NAME"
-    value     = var.backend_db_name
+    value     = var.server_db_name
   }
   
-  # Set up the CodePipeline for the backend
+  # Set up the CodePipeline for the server
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineServiceRoleArn"
-    value     = var.backend_codepipeline_role_arn
+    value     = var.server_codepipeline_role_arn
   }
   
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineS3Bucket"
-    value     = var.backend_codepipeline_s3_bucket_name
+    value     = var.server_codepipeline_s3_bucket_name
   }
   
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineS3Key"
-    value     = var.backend_codepipeline_s3_key
+    value     = var.server_codepipeline_s3_key
   }
 }
 

@@ -35,10 +35,10 @@ variable "datadog_app_key" {
     default = ""
 }
 
-variable "frontend_codepipeline_role_arn" {
+variable "client_codepipeline_role_arn" {
   default = "https://ap-southeast-1.console.aws.amazon.com/iam/home?region=ap-southeast-1#/roles/AWSCodePipelineServiceRole-ap-southeast-1-glam-eCommerce"
 }
 
-variable "frontend_codepipeline_s3_bucket_name" {
+variable "client_codepipeline_s3_bucket_name" {
   default = "codepipeline-ap-southeast-1-814300243622"
 }
