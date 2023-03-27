@@ -1,6 +1,7 @@
 provider "aws" {
   region = "ap-southeast-1"
 }
+
 # Elastic Beanstalk for frontend
 module "frontend_eb" {
   source = "terraform-aws-modules/elastic-beanstalk/aws"
