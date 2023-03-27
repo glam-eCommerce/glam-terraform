@@ -14,11 +14,6 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   solution_stack_name = "64bit Amazon Linux 2 v5.4.6 running Docker 20.10.7"
   
   # Configure the Elastic Beanstalk environment with the necessary properties for the client code
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "Command"
-    value     = "docker run --env-file /opt/elasticbeanstalk/deployment/env -p 80:80 -d <your-docker-image>"
-  }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
@@ -44,7 +39,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
     value     = ""
   }
   
-  # Set up the CodePipeline for the frontend
+  # Set up the CodePipeline for the client
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineServiceRoleArn"
@@ -54,7 +49,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineS3Bucket"
-    value     = var.client_codepipeline_s3_bucket_name
+    value     = var.codepipeline_s3_bucket_name
   }
   
   setting {
@@ -66,25 +61,55 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
 
 # Define the Elastic Beanstalk application and environment for the server
 resource "aws_elastic_beanstalk_application" "server_app" {
-  name = "glam-shop-server"
+  name = "Glamdockerservereb-env-staging"
 }
 
 resource "aws_elastic_beanstalk_environment" "server_staging_env" {
-  name                = "glam-shop-server-staging"
+  name                = "Glamdockerservereb-env-staging"
   application         = aws_elastic_beanstalk_application.server_app.name
   solution_stack_name = "64bit Amazon Linux 2 v5.4.6 running Docker 20.10.7"
   
   # Configure the Elastic Beanstalk environment with the necessary properties for the server code
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "DATABASE_URL"
-    value     = var.server_db_url
+    name      = "BRAINTREE_MERCHANT_ID"
+    value     = "3wv8zr3vrx5y2h8b"
   }
-  
+
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "DATABASE_NAME"
-    value     = var.server_db_name
+    name      = "BRAINTREE_PRIVATE_KEY"
+    value     = "a5df57ceeb3919851d4cd2f8c51db3a5"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "BRAINTREE_PUBLIC_KEY"
+    value     = "sd25mjxk4hhw9t7r"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DATABASE"
+    value     = "mongodb://root:Glamecommerce123@glam-mongodb.cf6vaav49w2p.ap-southeast-1.docdb.amazonaws.com:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DD_AGENT_MAJOR_VERSION"
+    value     = "7"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DD_AGENT_MINOR_VERSION"
+    value     = ""
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "PORT"
+    value     = "80"
   }
   
   # Set up the CodePipeline for the server
@@ -97,7 +122,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:environment:process:default"
     name      = "CodePipelineS3Bucket"
-    value     = var.server_codepipeline_s3_bucket_name
+    value     = var.codepipeline_s3_bucket_name
   }
   
   setting {

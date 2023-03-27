@@ -39,6 +39,10 @@ variable "client_codepipeline_role_arn" {
   default = "https://ap-southeast-1.console.aws.amazon.com/iam/home?region=ap-southeast-1#/roles/AWSCodePipelineServiceRole-ap-southeast-1-glam-eCommerce"
 }
 
-variable "client_codepipeline_s3_bucket_name" {
+variable "codepipeline_s3_bucket_name" {
   default = "codepipeline-ap-southeast-1-814300243622"
+}
+
+variable "server_codepipeline_role_arn" {
+  default = "https://ap-southeast-1.console.aws.amazon.com/iam/home?region=ap-southeast-1#/roles/AWSCodePipelineServiceRole-ap-southeast-1-glam-server-codepipel"
 }
