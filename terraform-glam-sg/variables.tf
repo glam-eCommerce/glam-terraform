@@ -60,3 +60,13 @@ variable "codepipeline_s3_bucket_name" {
 variable "server_codepipeline_role_arn" {
   default = "https://ap-southeast-1.console.aws.amazon.com/iam/home?region=ap-southeast-1#/roles/AWSCodePipelineServiceRole-ap-southeast-1-glam-server-codepipel"
 }
+
+variable "sns_topic_arn_client" {
+  description = "ARN of the client SNS topic for manual approval notifications"
+  type        = string
+}
+
+variable "sns_topic_arn_server" {
+  description = "ARN of the server SNS topic for manual approval notifications"
+  type        = string
+}

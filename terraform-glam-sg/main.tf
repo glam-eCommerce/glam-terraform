@@ -130,7 +130,7 @@ resource "aws_elastic_beanstalk_application" "server_app" {
   name = "glam-docker-server-eb"
 }
 
-# Define the Elastic Beanstalk for the CLIENT staging environment
+# Define the Elastic Beanstalk for the SERVER staging environment
 resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   name                = "glam-docker-server-eb-env-staging"
   application         = aws_elastic_beanstalk_application.server_app.name
@@ -158,7 +158,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE"
-    value     = "${aws_docdb_cluster.glamecommerce_db_instance.endpoint}"
+    value     = "${aws_docdb_cluster_instance.glamecommerce_db_instance.docdb_endpoint_url}"
   }
 
   setting {
@@ -199,7 +199,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   # }
 }
 
-# Define the Elastic Beanstalk for the CLIENT production environment
+# Define the Elastic Beanstalk for the SERVER production environment
 resource "aws_elastic_beanstalk_environment" "server_production_env" {
   name                = "glam-docker-server-eb-env-production"
   application         = aws_elastic_beanstalk_application.server_app.name
@@ -227,7 +227,7 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE"
-    value     = "${aws_docdb_cluster.glamecommerce_db_instance.endpoint}"
+    value     = "${aws_docdb_cluster_instance.glamecommerce_db_instance.docdb_endpoint_url}"
   }
 
   setting {
@@ -285,7 +285,7 @@ resource "aws_docdb_cluster" "glamecommerce_db_cluster" {
 
 resource "aws_docdb_cluster_instance" "glamecommerce_db_instance" {
   identifier   = "glamecommerce_db_instance"
-  cluster_identifier = aws_docdb_cluster.example.id
+  cluster_identifier = aws_docdb_cluster.glamecommerce_db_cluster.id
   instance_class = "db.t4g.medium"
   preferred_maintenance_window = "Sun:03:00-Sun:04:00"
   auto_minor_version_upgrade = true
@@ -293,7 +293,7 @@ resource "aws_docdb_cluster_instance" "glamecommerce_db_instance" {
 }
 
 output "docdb_endpoint_url" {
-  value = "mongodb://root:Glamecommerce123@${aws_docdb_cluster.glamecommerce_db_instance.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
+  value = "mongodb://root:Glamecommerce123@${aws_docdb_cluster_instance.glamecommerce_db_instance.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
 }
 
 resource "aws_db_subnet_group" "my_subnet_group" {
@@ -378,7 +378,7 @@ resource "aws_codepipeline" "glam_client" {
       version         = "1"
       input_artifacts = []
       configuration = {
-        NotificationArn = aws_sns_topic.manual_approval_arn_client.arn
+        NotificationArn = var.sns_topic_arn_client
         CustomData      = "Please check if pre-production environment passed UAT and proceed to deploy to production."
       }
     }
@@ -403,10 +403,10 @@ resource "aws_codepipeline" "glam_client" {
 }
 
 # Define the SNS configuration for the client
-resource "aws_sns_topic" "manual_approval_arn_client" {
-  name = "sns-manual-approval-client-pre-prod"
-  arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-client-pre-prod"
-}
+# resource "aws_sns_topic" "manual_approval_arn_client" {
+#   name = "sns-manual-approval-client-pre-prod"
+#   arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-client-pre-prod"
+# }
 
 # Define the CodePipeline configuration for the server
 resource "aws_codepipeline" "glam_server" {
@@ -464,7 +464,7 @@ resource "aws_codepipeline" "glam_server" {
       version         = "1"
       input_artifacts = []
       configuration = {
-        NotificationArn = aws_sns_topic.manual_approval_arn_server.arn
+        NotificationArn = var.sns_topic_arn_server
         CustomData      = "Please check if pre-production environment passed UAT and proceed to deploy to production."
       }
     }
@@ -489,7 +489,7 @@ resource "aws_codepipeline" "glam_server" {
 }
 
 # Define the SNS configuration for the server
-resource "aws_sns_topic" "manual_approval_arn_server" {
-  name = "sns-manual-approval-server-pre-prod"
-  arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-server-pre-prod"
-}
+# resource "aws_sns_topic" "manual_approval_arn_server" {
+#   name = "sns-manual-approval-server-pre-prod"
+#   arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-server-pre-prod"
+# }
