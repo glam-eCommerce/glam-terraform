@@ -30,12 +30,13 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NODE_ENV"
-    value     = "staging"
+    value     = "production"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "REACT_APP_API_URL"
+    # NEEDS TO BE CHANGED!!!
     value     = "http://glamdockerservereb-env-staging.eba-eemfywtm.ap-southeast-1.elasticbeanstalk.com"
   }
   
@@ -88,6 +89,7 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "REACT_APP_API_URL"
+    # NEEDS TO BE CHANGED!!!
     value     = "http://glamdockerservereb-env-staging.eba-eemfywtm.ap-southeast-1.elasticbeanstalk.com"
   }
   
@@ -123,13 +125,83 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
   # }
 }
 
-# Define the Elastic Beanstalk application and environment for the server-staging
+# Define the Elastic Beanstalk SERVER application 
 resource "aws_elastic_beanstalk_application" "server_app" {
   name = "glam-docker-server-eb"
 }
 
+# Define the Elastic Beanstalk for the CLIENT staging environment
 resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   name                = "glam-docker-server-eb-env-staging"
+  application         = aws_elastic_beanstalk_application.server_app.name
+  solution_stack_name = "64bit Amazon Linux 2 v5.4.6 running Docker 20.10.7"
+  
+  # Configure the Elastic Beanstalk environment with the necessary properties for the server code
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "BRAINTREE_MERCHANT_ID"
+    value     = "3wv8zr3vrx5y2h8b"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "BRAINTREE_PRIVATE_KEY"
+    value     = "a5df57ceeb3919851d4cd2f8c51db3a5"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "BRAINTREE_PUBLIC_KEY"
+    value     = "sd25mjxk4hhw9t7r"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DATABASE"
+    value     = "${aws_docdb_cluster.glamecommerce_db_instance.endpoint}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DD_AGENT_MAJOR_VERSION"
+    value     = "7"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DD_AGENT_MINOR_VERSION"
+    value     = ""
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "PORT"
+    value     = "80"
+  }
+  
+  # Set up the CodePipeline for the server
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "CodePipelineServiceRoleArn"
+    value     = var.server_codepipeline_role_arn
+  }
+  
+  setting {
+    namespace = "aws:elasticbeanstalk:environment:process:default"
+    name      = "CodePipelineS3Bucket"
+    value     = var.codepipeline_s3_bucket_name
+  }
+  
+  # setting {
+  #   namespace = "aws:elasticbeanstalk:environment:process:default"
+  #   name      = "CodePipelineS3Key"
+  #   value     = var.server_codepipeline_s3_key
+  # }
+}
+
+# Define the Elastic Beanstalk for the CLIENT production environment
+resource "aws_elastic_beanstalk_environment" "server_production_env" {
+  name                = "glam-docker-server-eb-env-production"
   application         = aws_elastic_beanstalk_application.server_app.name
   solution_stack_name = "64bit Amazon Linux 2 v5.4.6 running Docker 20.10.7"
   
@@ -306,8 +378,8 @@ resource "aws_codepipeline" "glam_client" {
       version         = "1"
       input_artifacts = []
       configuration = {
-        NotificationArn = aws_sns_topic.manual_approval_arn.arn
-        CustomData      = "Manual approval needed for pre-production deployment."
+        NotificationArn = aws_sns_topic.manual_approval_arn_client.arn
+        CustomData      = "Please check if pre-production environment passed UAT and proceed to deploy to production."
       }
     }
   }
@@ -321,11 +393,23 @@ resource "aws_codepipeline" "glam_client" {
       owner           = "AWS"
       provider        = "ElasticBeanstalk"
       version         = "1"
-      input_artifacts = ["source_artifact"]
+      input_artifacts = ["SourceArtifact"]
       configuration = {
-        ApplicationName = aws_elastic_beanstalk_application.server_app.name
-        EnvironmentName = aws_elastic_beanstalk_environment.glam_client_production.name
+        ApplicationName = aws_elastic_beanstalk_application.client_app.name
+        EnvironmentName = aws_elastic_beanstalk_environment.client_production_env.name
       }
     }
   }
+}
+
+# Define the SNS configuration for the client
+resource "aws_sns_topic" "manual_approval_arn_client" {
+  name = "sns-manual-approval-client-pre-prod"
+  arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-client-pre-prod"
+}
+
+# Define the SNS configuration for the server
+resource "aws_sns_topic" "manual_approval_arn_server" {
+  name = "sns-manual-approval-server-pre-prod"
+  arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-server-pre-prod"
 }
