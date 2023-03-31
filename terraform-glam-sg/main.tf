@@ -408,6 +408,86 @@ resource "aws_sns_topic" "manual_approval_arn_client" {
   arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-client-pre-prod"
 }
 
+# Define the CodePipeline configuration for the server
+resource "aws_codepipeline" "glam_server" {
+  name     = "glam-server-codepipeline"
+  role_arn = var.client_codepipeline_role_arn
+
+  artifact_store {
+    location = var.codepipeline_s3_bucket_name
+    type     = "S3"
+  }
+
+  stage {
+    name = "Source"
+
+    action {
+      name            = "Source"
+      category        = "Source"
+      owner           = "ThirdParty"
+      provider        = "GitHub"
+      version         = "2"
+      output_artifacts = ["SourceArtifact"]
+      configuration = {
+        Owner      = var.github_owner
+        Repo       = var.github_repo_be
+        Branch     = var.github_branch
+      }
+    }
+  }
+
+  stage {
+    name = "Deploy"
+
+    action {
+      name            = "Deploy"
+      category        = "Deploy"
+      owner           = "AWS"
+      provider        = "ElasticBeanstalk"
+      version         = "1"
+      input_artifacts = ["SourceArtifact"]
+      configuration = {
+        ApplicationName = aws_elastic_beanstalk_application.server_app.name
+        EnvironmentName = aws_elastic_beanstalk_environment.server_staging_env.name
+      }
+    }
+  }
+
+  stage {
+    name = "Pre-production"
+
+    action {
+      name            = "ManualApproval"
+      category        = "Approval"
+      owner           = "AWS"
+      provider        = "Manual"
+      version         = "1"
+      input_artifacts = []
+      configuration = {
+        NotificationArn = aws_sns_topic.manual_approval_arn_server.arn
+        CustomData      = "Please check if pre-production environment passed UAT and proceed to deploy to production."
+      }
+    }
+  }
+
+  stage {
+    name = "Production"
+
+    action {
+      name            = "Deploy"
+      category        = "Deploy"
+      owner           = "AWS"
+      provider        = "ElasticBeanstalk"
+      version         = "1"
+      input_artifacts = ["SourceArtifact"]
+      configuration = {
+        ApplicationName = aws_elastic_beanstalk_application.server_app.name
+        EnvironmentName = aws_elastic_beanstalk_environment.server_production_env.name
+      }
+    }
+  }
+}
+
 # Define the SNS configuration for the server
 resource "aws_sns_topic" "manual_approval_arn_server" {
   name = "sns-manual-approval-server-pre-prod"
