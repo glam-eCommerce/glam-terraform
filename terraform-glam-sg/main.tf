@@ -23,6 +23,15 @@ resource "aws_vpc" "my_vpc" {
   }
 }
 
+resource "aws_eip" "nat_gateway" {
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_eip.nat_gateway.id
+  subnet_id     = aws_subnet.public.id
+}
+
 resource "aws_subnet" "public" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.3.0/24"
@@ -48,6 +57,25 @@ resource "aws_route_table" "public" {
 resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "private_association_a" {
+  subnet_id      = aws_subnet.my_subnet_a.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_association_b" {
+  subnet_id      = aws_subnet.my_subnet_b.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.my_vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gateway.id
+  }
 }
 
 resource "aws_iam_role" "beanstalk_instance_role" {
@@ -273,7 +301,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE"
-    value     = "$mongodb://root:Glamecommerce123@${aws_docdb_cluster.glamecommerce_db_cluster.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
+    value     = "mongodb://root:Glamecommerce123@${aws_docdb_cluster.glamecommerce_db_cluster.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
   }
 
   setting {
@@ -361,7 +389,7 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE"
-    value     = "$mongodb://root:Glamecommerce123@${aws_docdb_cluster.glamecommerce_db_cluster.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
+    value     = "mongodb://root:Glamecommerce123@${aws_docdb_cluster.glamecommerce_db_cluster.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
   }
 
   setting {
