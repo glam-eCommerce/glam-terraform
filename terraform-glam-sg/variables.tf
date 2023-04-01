@@ -50,7 +50,7 @@ variable "datadog_app_key" {
 }
 
 variable "client_codepipeline_role_arn" {
-  default = "https://ap-southeast-1.console.aws.amazon.com/iam/home?region=ap-southeast-1#/roles/AWSCodePipelineServiceRole-ap-southeast-1-glam-eCommerce"
+  default = "arn:aws:iam::557048361311:role/service-role/AWSCodePipelineServiceRole-ap-southeast-1-glam-eCommerce"
 }
 
 variable "codepipeline_s3_bucket_name" {
@@ -58,7 +58,7 @@ variable "codepipeline_s3_bucket_name" {
 }
 
 variable "server_codepipeline_role_arn" {
-  default = "https://ap-southeast-1.console.aws.amazon.com/iam/home?region=ap-southeast-1#/roles/AWSCodePipelineServiceRole-ap-southeast-1-glam-server-codepipel"
+  default = "arn:aws:iam::557048361311:role/service-role/AWSCodePipelineServiceRole-ap-southeast-1-glam-server-codepipel"
 }
 
 variable "sns_topic_arn_client" {
