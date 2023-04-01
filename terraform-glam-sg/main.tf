@@ -51,7 +51,7 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_iam_role" "beanstalk_instance_role" {
-  name = "beanstalk-instance-role"
+  name = "beanstalk-instance-role-terraform"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -68,18 +68,18 @@ resource "aws_iam_role" "beanstalk_instance_role" {
 }
 
 resource "aws_iam_instance_profile" "beanstalk_instance_profile" {
-  name = "beanstalk-instance-profile"
+  name = "beanstalk-instance-profile-terraform"
   role = aws_iam_role.beanstalk_instance_role.name
 }
 
 # Define the Elastic Beanstalk CLIENT application 
 resource "aws_elastic_beanstalk_application" "client_app" {
-  name = "glam-docker-client-eb"
+  name = "glam-docker-client-eb-terraform"
 }
 
 # Define the Elastic Beanstalk for the CLIENT staging environment
 resource "aws_elastic_beanstalk_environment" "client_staging_env" {
-  name                = "glam-docker-client-eb-env-staging"
+  name                = "glam-docker-client-eb-env-staging-terraform"
   application         = aws_elastic_beanstalk_application.client_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
   
@@ -150,7 +150,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
 
 # Define the Elastic Beanstalk for the CLIENT production environment
 resource "aws_elastic_beanstalk_environment" "client_production_env" {
-  name                = "glam-docker-client-eb-env-production"
+  name                = "glam-docker-client-eb-env-production-terraform"
   application         = aws_elastic_beanstalk_application.client_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
   
@@ -222,12 +222,12 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
 
 # Define the Elastic Beanstalk SERVER application 
 resource "aws_elastic_beanstalk_application" "server_app" {
-  name = "glam-docker-server-eb"
+  name = "glam-docker-server-eb-terraform"
 }
 
 # Define the Elastic Beanstalk for the SERVER staging environment
 resource "aws_elastic_beanstalk_environment" "server_staging_env" {
-  name                = "glam-docker-server-eb-env-staging"
+  name                = "glam-docker-server-eb-env-staging-terraform"
   application         = aws_elastic_beanstalk_application.server_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
 
@@ -316,7 +316,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
 
 # Define the Elastic Beanstalk for the SERVER production environment
 resource "aws_elastic_beanstalk_environment" "server_production_env" {
-  name                = "glam-docker-server-eb-env-production"
+  name                = "glam-docker-server-eb-env-production-terraform"
   application         = aws_elastic_beanstalk_application.server_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
   
@@ -407,7 +407,7 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
 
 # Define DocumentDB / MongoDB configuration
 resource "aws_docdb_cluster" "glamecommerce_db_cluster" {
-  cluster_identifier   = "glamecommerce-cluster"
+  cluster_identifier   = "glamecommerce-cluster-terraform"
   engine               = "docdb"
   master_username      = "root"
   master_password      = "Glamecommerce123"
@@ -418,7 +418,7 @@ resource "aws_docdb_cluster" "glamecommerce_db_cluster" {
 }
 
 resource "aws_docdb_cluster_instance" "glamecommerce_db_instance" {
-  identifier   = "glamecommerce-docdb-instance"
+  identifier   = "glamecommerce-docdb-instance-terraform"
   cluster_identifier = aws_docdb_cluster.glamecommerce_db_cluster.id
   instance_class = "db.t4g.medium"
   preferred_maintenance_window = "Sun:03:00-Sun:04:00"
@@ -444,7 +444,7 @@ resource "aws_subnet" "my_subnet_b" {
 }
 
 resource "aws_db_subnet_group" "my_subnet_group" {
-  name       = "my-subnet-group"
+  name       = "my-subnet-group-terraform"
   subnet_ids = [
     aws_subnet.my_subnet_a.id,
     aws_subnet.my_subnet_b.id
