@@ -119,6 +119,13 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
     value     = "production"
   }
 
+  # keypair
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "EC2KeyName"
+    value     = "glam-admin-keypair"
+  }
+
   # Set up a VPC for the Elastic Beanstalk environment
   setting {
     namespace = "aws:ec2:vpc"
@@ -189,6 +196,13 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
     namespace = "aws:ec2:vpc"
     name      = "VPCId"
     value     = aws_vpc.my_vpc.id
+  }
+
+    # keypair
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "EC2KeyName"
+    value     = "glam-admin-keypair"
   }
 
   setting {
@@ -266,6 +280,13 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
     namespace = "aws:ec2:vpc"
     name      = "VPCId"
     value     = aws_vpc.my_vpc.id
+  }
+
+    # keypair
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "EC2KeyName"
+    value     = "glam-admin-keypair"
   }
 
   setting {
@@ -355,8 +376,15 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
     name      = "VPCId"
     value     = aws_vpc.my_vpc.id
   }
+  
+    # keypair
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "EC2KeyName"
+    value     = "glam-admin-keypair"
+  }
 
-    setting {
+  setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
     value     = aws_iam_instance_profile.beanstalk_instance_profile.name
