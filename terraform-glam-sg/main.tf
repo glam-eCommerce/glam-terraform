@@ -25,7 +25,7 @@ resource "aws_vpc" "my_vpc" {
 
 resource "aws_subnet" "public" {
   vpc_id     = aws_vpc.my_vpc.id
-  cidr_block = "10.0.2.0/24"
+  cidr_block = "10.0.3.0/24"
 
   tags = {
     Name = "terraform-public-subnet"
@@ -79,7 +79,7 @@ resource "aws_elastic_beanstalk_application" "client_app" {
 
 # Define the Elastic Beanstalk for the CLIENT staging environment
 resource "aws_elastic_beanstalk_environment" "client_staging_env" {
-  name                = "glam-docker-client-eb-env-staging-terraform"
+  name                = "glam-client-staging-terraform"
   application         = aws_elastic_beanstalk_application.client_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
   
@@ -150,7 +150,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
 
 # Define the Elastic Beanstalk for the CLIENT production environment
 resource "aws_elastic_beanstalk_environment" "client_production_env" {
-  name                = "glam-docker-client-eb-env-production-terraform"
+  name                = "glam-client-production-terraform"
   application         = aws_elastic_beanstalk_application.client_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
   
@@ -227,7 +227,7 @@ resource "aws_elastic_beanstalk_application" "server_app" {
 
 # Define the Elastic Beanstalk for the SERVER staging environment
 resource "aws_elastic_beanstalk_environment" "server_staging_env" {
-  name                = "glam-docker-server-eb-env-staging-terraform"
+  name                = "glam-server-staging-terraform"
   application         = aws_elastic_beanstalk_application.server_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
 
@@ -273,7 +273,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE"
-    value     = "${aws_docdb_cluster_instance.glamecommerce_db_instance.endpoint}"
+    value     = "$mongodb://root:Glamecommerce123@${aws_docdb_cluster.glamecommerce_db_cluster.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
   }
 
   setting {
@@ -316,7 +316,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
 
 # Define the Elastic Beanstalk for the SERVER production environment
 resource "aws_elastic_beanstalk_environment" "server_production_env" {
-  name                = "glam-docker-server-eb-env-production-terraform"
+  name                = "glam-server-production-terraform"
   application         = aws_elastic_beanstalk_application.server_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
   
@@ -361,7 +361,7 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DATABASE"
-    value     = "${aws_docdb_cluster_instance.glamecommerce_db_instance.endpoint}"
+    value     = "$mongodb://root:Glamecommerce123@${aws_docdb_cluster.glamecommerce_db_cluster.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
   }
 
   setting {
