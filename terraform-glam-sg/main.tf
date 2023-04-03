@@ -101,6 +101,25 @@ resource "aws_iam_instance_profile" "beanstalk_instance_profile" {
   role = aws_iam_role.beanstalk_instance_role.name
 }
 
+# ELASTIC IP ADDRESSES
+resource "aws_eip" "eip_client_staging" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_association_client_staging" {
+  instance_id   = aws_elastic_beanstalk_environment.client_staging_env.id
+  allocation_id = aws_eip.eip_client_staging.id
+}
+
+resource "aws_eip" "eip_server_staging" {
+  vpc = true
+}
+
+resource "aws_eip_association" "eip_association_server_staging" {
+  instance_id   = aws_elastic_beanstalk_environment.server_staging_env.id
+  allocation_id = aws_eip.eip_server_staging.id
+}
+
 # Define the Elastic Beanstalk CLIENT application 
 resource "aws_elastic_beanstalk_application" "client_app" {
   name = "glam-docker-client-eb-terraform"
@@ -164,24 +183,6 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
     value     = ""
   }
   
-  # Set up the CodePipeline for the client
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineServiceRoleArn"
-    value     = var.client_codepipeline_role_arn
-  }
-  
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineS3Bucket"
-    value     = var.codepipeline_s3_bucket_name
-  }
-  
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:environment:process:default"
-  #   name      = "CodePipelineS3Key"
-  #   value     = var.client_codepipeline_s3_key
-  # }
 }
 
 # Define the Elastic Beanstalk for the CLIENT production environment
@@ -243,24 +244,6 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
     value     = ""
   }
   
-  # Set up the CodePipeline for the client
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineServiceRoleArn"
-    value     = var.client_codepipeline_role_arn
-  }
-  
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineS3Bucket"
-    value     = var.codepipeline_s3_bucket_name
-  }
-  
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:environment:process:default"
-  #   name      = "CodePipelineS3Key"
-  #   value     = var.client_codepipeline_s3_key
-  # }
 }
 
 
@@ -345,24 +328,6 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
     value     = "80"
   }
   
-  # Set up the CodePipeline for the server
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineServiceRoleArn"
-    value     = var.server_codepipeline_role_arn
-  }
-  
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineS3Bucket"
-    value     = var.codepipeline_s3_bucket_name
-  }
-  
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:environment:process:default"
-  #   name      = "CodePipelineS3Key"
-  #   value     = var.server_codepipeline_s3_key
-  # }
 }
 
 # Define the Elastic Beanstalk for the SERVER production environment
@@ -440,28 +405,7 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
     value     = "80"
   }
   
-  # Set up the CodePipeline for the server
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineServiceRoleArn"
-    value     = var.server_codepipeline_role_arn
-  }
-  
-  setting {
-    namespace = "aws:elasticbeanstalk:environment:process:default"
-    name      = "CodePipelineS3Bucket"
-    value     = var.codepipeline_s3_bucket_name
-  }
-  
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:environment:process:default"
-  #   name      = "CodePipelineS3Key"
-  #   value     = var.server_codepipeline_s3_key
-  # }
 }
-
-# Define the DataDog configuration
-# resource "datadog_dashboard" 
 
 # Define DocumentDB / MongoDB configuration
 resource "aws_docdb_cluster" "glamecommerce_db_cluster" {
@@ -469,7 +413,7 @@ resource "aws_docdb_cluster" "glamecommerce_db_cluster" {
   engine               = "docdb"
   master_username      = "root"
   master_password      = "Glamecommerce123"
-  db_subnet_group_name = aws_db_subnet_group.my_subnet_group.name
+  db_subnet_group_name = aws_db_subnet_group.new_subnet_group.name
   vpc_security_group_ids = [
     aws_security_group.docdb_sg.id
   ]
@@ -488,17 +432,34 @@ output "docdb_endpoint_url" {
   value = "mongodb://root:Glamecommerce123@${aws_docdb_cluster_instance.glamecommerce_db_instance.endpoint}:27017/ecommerce?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&retryWrites=false"
 }
 
-resource "aws_db_subnet_group" "my_subnet_group" {
-  name       = "my-subnet-group-terraform"
+# Creating 2 private subnets for DocumentDB for high availability
+resource "aws_subnet" "my_subnet_a" {
+  vpc_id = aws_vpc.my_vpc.id
+  cidr_block = "10.0.5.0/24"
+  availability_zone = "ap-southeast-1a"
+  tags = {
+    "Name" = "private-subnet-1a-terraform-docdb"
+  }
+}
+resource "aws_subnet" "my_subnet_b" {
+  vpc_id = aws_vpc.my_vpc.id
+  cidr_block = "10.0.6.0/24"
+  availability_zone = "ap-southeast-1b"
+  tags = {
+    "Name" = "private-subnet-1b-terraform-docdb"
+  }
+}
+
+resource "aws_db_subnet_group" "new_subnet_group" {
+  name       = "new-subnet-group-terraform"
   subnet_ids = [
-    aws_subnet.public_a.id,
-    aws_subnet.public_b.id,
-    aws_subnet.public_c.id
+    aws_subnet.my_subnet_a.id,
+    aws_subnet.my_subnet_b.id
   ]
 }
 
 resource "aws_security_group" "docdb_sg" {
-  name_prefix = "docdb-sg"
+  name_prefix = "docdb-sg-terraform"
   vpc_id = aws_vpc.my_vpc.id
 
   ingress {
@@ -508,175 +469,3 @@ resource "aws_security_group" "docdb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
-# Define the CodePipeline configuration for the client
-# resource "aws_codepipeline" "glam_client" {
-#   name     = "glam-client-codepipeline"
-#   role_arn = var.client_codepipeline_role_arn
-
-#   artifact_store {
-#     location = var.codepipeline_s3_bucket_name
-#     type     = "S3"
-#   }
-
-#   stage {
-#     name = "Source"
-
-#     action {
-#       name            = "Source"
-#       category        = "Source"
-#       owner           = "ThirdParty"
-#       provider        = "GitHubConnection"
-#       version         = "2"
-#       output_artifacts = ["SourceArtifact"]
-#       configuration = {
-#         Owner      = var.github_owner
-#         Repo       = var.github_repo_fe
-#         Branch     = var.github_branch
-#       }
-#     }
-#   }
-
-#   stage {
-#     name = "Deploy"
-
-#     action {
-#       name            = "Deploy"
-#       category        = "Deploy"
-#       owner           = "AWS"
-#       provider        = "ElasticBeanstalk"
-#       version         = "1"
-#       input_artifacts = ["SourceArtifact"]
-#       configuration = {
-#         ApplicationName = aws_elastic_beanstalk_application.client_app.name
-#         EnvironmentName = aws_elastic_beanstalk_environment.client_staging_env.name
-#       }
-#     }
-#   }
-
-#   stage {
-#     name = "Pre-production"
-
-#     action {
-#       name            = "ManualApproval"
-#       category        = "Approval"
-#       owner           = "AWS"
-#       provider        = "Manual"
-#       version         = "1"
-#       input_artifacts = []
-#       configuration = {
-#         NotificationArn = var.sns_topic_arn_client
-#         CustomData      = "Please check if pre-production environment passed UAT and proceed to deploy to production."
-#       }
-#     }
-#   }
-
-#   stage {
-#     name = "Production"
-
-#     action {
-#       name            = "Deploy"
-#       category        = "Deploy"
-#       owner           = "AWS"
-#       provider        = "ElasticBeanstalk"
-#       version         = "1"
-#       input_artifacts = ["SourceArtifact"]
-#       configuration = {
-#         ApplicationName = aws_elastic_beanstalk_application.client_app.name
-#         EnvironmentName = aws_elastic_beanstalk_environment.client_production_env.name
-#       }
-#     }
-#   }
-# }
-
-# Define the SNS configuration for the client
-# resource "aws_sns_topic" "manual_approval_arn_client" {
-#   name = "sns-manual-approval-client-pre-prod"
-#   arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-client-pre-prod"
-# }
-
-# Define the CodePipeline configuration for the server
-# resource "aws_codepipeline" "glam_server" {
-#   name     = "glam-server-codepipeline"
-#   role_arn = var.client_codepipeline_role_arn
-
-#   artifact_store {
-#     location = var.codepipeline_s3_bucket_name
-#     type     = "S3"
-#   }
-
-#   stage {
-#     name = "Source"
-
-#     action {
-#       name            = "Source"
-#       category        = "Source"
-#       owner           = "ThirdParty"
-#       provider        = "GitHubConnection"
-#       version         = "2"
-#       output_artifacts = ["SourceArtifact"]
-#       configuration = {
-#         Owner      = var.github_owner
-#         Repo       = var.github_repo_be
-#         Branch     = var.github_branch
-#       }
-#     }
-#   }
-
-#   stage {
-#     name = "Deploy"
-
-#     action {
-#       name            = "Deploy"
-#       category        = "Deploy"
-#       owner           = "AWS"
-#       provider        = "ElasticBeanstalk"
-#       version         = "1"
-#       input_artifacts = ["SourceArtifact"]
-#       configuration = {
-#         ApplicationName = aws_elastic_beanstalk_application.server_app.name
-#         EnvironmentName = aws_elastic_beanstalk_environment.server_staging_env.name
-#       }
-#     }
-#   }
-
-#   stage {
-#     name = "Pre-production"
-
-#     action {
-#       name            = "ManualApproval"
-#       category        = "Approval"
-#       owner           = "AWS"
-#       provider        = "Manual"
-#       version         = "1"
-#       input_artifacts = []
-#       configuration = {
-#         NotificationArn = var.sns_topic_arn_server
-#         CustomData      = "Please check if pre-production environment passed UAT and proceed to deploy to production."
-#       }
-#     }
-#   }
-
-#   stage {
-#     name = "Production"
-
-#     action {
-#       name            = "Deploy"
-#       category        = "Deploy"
-#       owner           = "AWS"
-#       provider        = "ElasticBeanstalk"
-#       version         = "1"
-#       input_artifacts = ["SourceArtifact"]
-#       configuration = {
-#         ApplicationName = aws_elastic_beanstalk_application.server_app.name
-#         EnvironmentName = aws_elastic_beanstalk_environment.server_production_env.name
-#       }
-#     }
-#   }
-# }
-
-# Define the SNS configuration for the server
-# resource "aws_sns_topic" "manual_approval_arn_server" {
-#   name = "sns-manual-approval-server-pre-prod"
-#   arn = "arn:aws:sns:ap-southeast-1:557048361311:sns-manual-approval-server-pre-prod"
-# }
