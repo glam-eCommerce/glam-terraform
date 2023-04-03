@@ -102,23 +102,23 @@ resource "aws_iam_instance_profile" "beanstalk_instance_profile" {
 }
 
 # ELASTIC IP ADDRESSES
-resource "aws_eip" "eip_client_staging" {
-  vpc = true
-}
+# resource "aws_eip" "eip_client_staging" {
+#   vpc = true
+# }
 
-resource "aws_eip_association" "eip_association_client_staging" {
-  instance_id   = aws_elastic_beanstalk_environment.client_staging_env.id
-  allocation_id = aws_eip.eip_client_staging.id
-}
+# resource "aws_eip_association" "eip_association_client_staging" {
+#   instance_id   = aws_elastic_beanstalk_environment.client_staging_env.id
+#   allocation_id = aws_eip.eip_client_staging.id
+# }
 
-resource "aws_eip" "eip_server_staging" {
-  vpc = true
-}
+# resource "aws_eip" "eip_server_staging" {
+#   vpc = true
+# }
 
-resource "aws_eip_association" "eip_association_server_staging" {
-  instance_id   = aws_elastic_beanstalk_environment.server_staging_env.id
-  allocation_id = aws_eip.eip_server_staging.id
-}
+# resource "aws_eip_association" "eip_association_server_staging" {
+#   instance_id   = aws_elastic_beanstalk_environment.server_staging_env.id
+#   allocation_id = aws_eip.eip_server_staging.id
+# }
 
 # Define the Elastic Beanstalk CLIENT application 
 resource "aws_elastic_beanstalk_application" "client_app" {
@@ -168,7 +168,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "REACT_APP_API_URL"
-    value     = "${aws_elastic_beanstalk_environment.server_staging_env.endpoint_url}"
+    value     = ""
   }
   
   setting {
@@ -229,7 +229,7 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "REACT_APP_API_URL"
     # NEEDS TO BE CHANGED!!!
-    value     = "${aws_elastic_beanstalk_environment.server_production_env.endpoint_url}"
+    value     = ""
   }
   
   setting {
@@ -245,7 +245,6 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
   }
   
 }
-
 
 # Define the Elastic Beanstalk SERVER application 
 resource "aws_elastic_beanstalk_application" "server_app" {
@@ -451,7 +450,7 @@ resource "aws_subnet" "my_subnet_b" {
 }
 
 resource "aws_db_subnet_group" "new_subnet_group" {
-  name       = "new-subnet-group-terraform"
+  name       = "subnet-group-terraform"
   subnet_ids = [
     aws_subnet.my_subnet_a.id,
     aws_subnet.my_subnet_b.id
