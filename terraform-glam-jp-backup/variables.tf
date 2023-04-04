@@ -1,7 +1,7 @@
 variable "default_region" {
   description = "The default AWS region to use"
   type = string
-  default = "ap-ap-northeast-1"
+  default = "ap-northeast-1"
 }
 
 variable "aws_access_key" {

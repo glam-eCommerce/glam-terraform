@@ -19,7 +19,7 @@ resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
   enable_dns_hostnames = true
   tags = {
-    Name = "terraform-vpc-glam-hk"
+    Name = "terraform-vpc-glam-jp"
   }
 }
 
@@ -33,16 +33,16 @@ resource "aws_subnet" "public_a" {
   }
 }
 
-resource "aws_subnet" "public_b" {
+resource "aws_subnet" "public_c" {
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = "10.0.1.0/24"
-  availability_zone = "ap-northeast-1b"
+  availability_zone = "ap-northeast-1c"
   tags = {
-    Name = "terraform-public-subnet-1b"
+    Name = "terraform-public-subnet-1c"
   }
 }
 
-resource "aws_subnet" "public_c" {
+resource "aws_subnet" "public_d" {
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = "10.0.2.0/24"
   availability_zone = "ap-northeast-1c"
@@ -69,56 +69,26 @@ resource "aws_route_table_association" "public_a" {
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_route_table_association" "public_b" {
-  subnet_id      = aws_subnet.public_b.id
-  route_table_id = aws_route_table.public.id
-}
-
 resource "aws_route_table_association" "public_c" {
   subnet_id      = aws_subnet.public_c.id
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_iam_role" "beanstalk_instance_role" {
-  name = "beanstalk-instance-role-terraform"
+resource "aws_route_table_association" "public_d" {
+  subnet_id      = aws_subnet.public_d.id
+  route_table_id = aws_route_table.public.id
+}
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
+data "aws_iam_role" "existing_role" {
+  name = "beanstalk-instance-role-terraform"
 }
 
 resource "aws_iam_instance_profile" "beanstalk_instance_profile" {
   name = "beanstalk-instance-profile-terraform"
-  role = aws_iam_role.beanstalk_instance_role.name
+
+  role = data.aws_iam_role.existing_role.arn
+  
 }
-
-# ELASTIC IP ADDRESSES
-# resource "aws_eip" "eip_client_staging" {
-#   vpc = true
-# }
-
-# resource "aws_eip_association" "eip_association_client_staging" {
-#   instance_id   = aws_elastic_beanstalk_environment.client_staging_env.id
-#   allocation_id = aws_eip.eip_client_staging.id
-# }
-
-# resource "aws_eip" "eip_server_staging" {
-#   vpc = true
-# }
-
-# resource "aws_eip_association" "eip_association_server_staging" {
-#   instance_id   = aws_elastic_beanstalk_environment.server_staging_env.id
-#   allocation_id = aws_eip.eip_server_staging.id
-# }
 
 # Define the Elastic Beanstalk CLIENT application 
 resource "aws_elastic_beanstalk_application" "client_app" {
@@ -162,7 +132,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_b.id], [aws_subnet.public_c.id])}"
+    value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_d.id], [aws_subnet.public_c.id])}"
   }
 
   setting {
@@ -216,7 +186,7 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_b.id], [aws_subnet.public_c.id])}"
+    value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_d.id], [aws_subnet.public_c.id])}"
   }
 
   setting {
@@ -282,7 +252,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_b.id], [aws_subnet.public_c.id])}"
+    value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_d.id], [aws_subnet.public_c.id])}"
   }
 
   setting {
@@ -359,7 +329,7 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
   setting {
   namespace = "aws:ec2:vpc"
   name      = "Subnets"
-  value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_b.id], [aws_subnet.public_c.id])}"
+  value     = "${join(",", [aws_subnet.public_a.id], [aws_subnet.public_d.id], [aws_subnet.public_c.id])}"
   }
 
   setting {
@@ -440,10 +410,10 @@ resource "aws_subnet" "my_subnet_a" {
     "Name" = "private-subnet-1a-terraform-docdb"
   }
 }
-resource "aws_subnet" "my_subnet_b" {
+resource "aws_subnet" "my_subnet_c" {
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = "10.0.6.0/24"
-  availability_zone = "ap-northeast-1b"
+  availability_zone = "ap-northeast-1c"
   tags = {
     "Name" = "private-subnet-1b-terraform-docdb"
   }
@@ -453,7 +423,7 @@ resource "aws_db_subnet_group" "new_subnet_group" {
   name       = "subnet-group-terraform"
   subnet_ids = [
     aws_subnet.my_subnet_a.id,
-    aws_subnet.my_subnet_b.id
+    aws_subnet.my_subnet_c.id
   ]
 }
 
