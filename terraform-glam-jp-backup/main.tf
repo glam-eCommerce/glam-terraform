@@ -27,7 +27,7 @@ resource "aws_vpc" "my_vpc" {
 resource "aws_subnet" "public_a" {
   vpc_id     = aws_vpc.my_vpc.id
   cidr_block = "10.0.3.0/24"
-  availability_zone = "ap-east-1a"
+  availability_zone = "ap-northeast-1a"
   tags = {
     Name = "terraform-public-subnet-1a"
   }
@@ -36,7 +36,7 @@ resource "aws_subnet" "public_a" {
 resource "aws_subnet" "public_b" {
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = "10.0.1.0/24"
-  availability_zone = "ap-east-1b"
+  availability_zone = "ap-northeast-1b"
   tags = {
     Name = "terraform-public-subnet-1b"
   }
@@ -45,7 +45,7 @@ resource "aws_subnet" "public_b" {
 resource "aws_subnet" "public_c" {
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = "10.0.2.0/24"
-  availability_zone = "ap-east-1c"
+  availability_zone = "ap-northeast-1c"
   tags = {
     Name = "terraform-public-subnet-1c"
   }
@@ -435,7 +435,7 @@ output "docdb_endpoint_url" {
 resource "aws_subnet" "my_subnet_a" {
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = "10.0.5.0/24"
-  availability_zone = "ap-east-1a"
+  availability_zone = "ap-northeast-1a"
   tags = {
     "Name" = "private-subnet-1a-terraform-docdb"
   }
@@ -443,7 +443,7 @@ resource "aws_subnet" "my_subnet_a" {
 resource "aws_subnet" "my_subnet_b" {
   vpc_id = aws_vpc.my_vpc.id
   cidr_block = "10.0.6.0/24"
-  availability_zone = "ap-east-1b"
+  availability_zone = "ap-northeast-1b"
   tags = {
     "Name" = "private-subnet-1b-terraform-docdb"
   }
