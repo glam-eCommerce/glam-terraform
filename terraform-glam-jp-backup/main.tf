@@ -79,15 +79,26 @@ resource "aws_route_table_association" "public_d" {
   route_table_id = aws_route_table.public.id
 }
 
-data "aws_iam_role" "existing_role" {
-  name = "beanstalk-instance-role-terraform"
+resource "aws_iam_role" "ebs_instance_role" {
+  name = "jp-ebs-instance-role-terraform"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
 }
 
-resource "aws_iam_instance_profile" "beanstalk_instance_profile" {
-  name = "beanstalk-instance-profile-terraform"
-
-  role = data.aws_iam_role.existing_role.arn
-  
+resource "aws_iam_instance_profile" "ebs_instance_profile" {
+  name = "jp-ebs-instance-role-terraform"
+  role = aws_iam_role.ebs_instance_role.name
 }
 
 # Define the Elastic Beanstalk CLIENT application 
@@ -99,7 +110,7 @@ resource "aws_elastic_beanstalk_application" "client_app" {
 resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   name                = "glam-client-staging-terraform"
   application         = aws_elastic_beanstalk_application.client_app.name
-  solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
+  solution_stack_name = "64bit Amazon Linux 2 v3.5.6 running Docker"
   
   # Configure the Elastic Beanstalk environment with the necessary properties for the client code
 
@@ -113,7 +124,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "EC2KeyName"
-    value     = "glam-admin-keypair"
+    value     = "glam-admin-keypair-jp"
   }
 
   # Set up a VPC for the Elastic Beanstalk environment
@@ -126,7 +137,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = aws_iam_instance_profile.beanstalk_instance_profile.name
+    value     = aws_iam_instance_profile.ebs_instance_profile.name
   }
 
   setting {
@@ -159,7 +170,7 @@ resource "aws_elastic_beanstalk_environment" "client_staging_env" {
 resource "aws_elastic_beanstalk_environment" "client_production_env" {
   name                = "glam-client-production-terraform"
   application         = aws_elastic_beanstalk_application.client_app.name
-  solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
+  solution_stack_name = "64bit Amazon Linux 2 v3.5.6 running Docker"
   
   # Configure the Elastic Beanstalk environment with the necessary properties for the client code
 
@@ -174,13 +185,13 @@ resource "aws_elastic_beanstalk_environment" "client_production_env" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "EC2KeyName"
-    value     = "glam-admin-keypair"
+    value     = "glam-admin-keypair-jp"
   }
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = aws_iam_instance_profile.beanstalk_instance_profile.name
+    value     = aws_iam_instance_profile.ebs_instance_profile.name
   }
 
   setting {
@@ -225,7 +236,7 @@ resource "aws_elastic_beanstalk_application" "server_app" {
 resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   name                = "glam-server-staging-terraform"
   application         = aws_elastic_beanstalk_application.server_app.name
-  solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
+  solution_stack_name = "64bit Amazon Linux 2 v3.5.6 running Docker"
 
   # Configure the Elastic Beanstalk environment with the necessary properties for the server code
   
@@ -240,13 +251,13 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "EC2KeyName"
-    value     = "glam-admin-keypair"
+    value     = "glam-admin-keypair-jp"
   }
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = aws_iam_instance_profile.beanstalk_instance_profile.name
+    value     = aws_iam_instance_profile.ebs_instance_profile.name
   }
 
   setting {
@@ -303,7 +314,7 @@ resource "aws_elastic_beanstalk_environment" "server_staging_env" {
 resource "aws_elastic_beanstalk_environment" "server_production_env" {
   name                = "glam-server-production-terraform"
   application         = aws_elastic_beanstalk_application.server_app.name
-  solution_stack_name = "64bit Amazon Linux 2 v3.5.5 running Docker"
+  solution_stack_name = "64bit Amazon Linux 2 v3.5.6 running Docker"
   
   # Configure the Elastic Beanstalk environment with the necessary properties for the server code
   # Set up a VPC for the Elastic Beanstalk environment
@@ -317,13 +328,13 @@ resource "aws_elastic_beanstalk_environment" "server_production_env" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "EC2KeyName"
-    value     = "glam-admin-keypair"
+    value     = "glam-admin-keypair-jp"
   }
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = aws_iam_instance_profile.beanstalk_instance_profile.name
+    value     = aws_iam_instance_profile.ebs_instance_profile.name
   }
 
   setting {
