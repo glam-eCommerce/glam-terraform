@@ -426,7 +426,7 @@ resource "aws_subnet" "my_subnet_c" {
   cidr_block = "10.0.6.0/24"
   availability_zone = "ap-northeast-1c"
   tags = {
-    "Name" = "private-subnet-1b-terraform-docdb"
+    "Name" = "private-subnet-1c-terraform-docdb"
   }
 }
 
